@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CampusOrbit UI</title>
+  <style>
+    /* Reset and base */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ddd;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background-color: #1e1e1e;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 0;
+      gap: 0.5rem;
+    }
+
+    .sidebar-item {
+      color: #bbb;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .sidebar-item:hover {
+      background-color: #2a2a2a;
+      color: white;
+    }
+    .sidebar-item.active {
+      font-weight: 700;
+      color: white;
+      background-color: #2a2a2a;
+    }
+
+    /* Icons in sidebar (simple placeholders as spans) */
+    .sidebar-item svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Top ticker / announcement bar */
+    .ticker {
+      position: fixed;
+      top: 0;
+      left: 230px;
+      right: 0;
+      background-color: #222;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 5px 15px;
+      white-space: nowrap;
+      overflow-x: auto;
+      z-index: 10;
+      display: flex;
+      gap: 20px;
+    }
+    .ticker span {
+      white-space: nowrap;
+    }
+
+    /* Main content */
+    main {
+      margin-left: 230px;
+      padding: 70px 30px 30px 30px;
+      flex-grow: 1;
+      background-color: #191919;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 24px;
+      align-content: start;
+    }
+
+    /* Card */
+    .card {
+      background-color: #242424;
+      padding: 20px 20px 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px #000000AA;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid transparent;
+      transition: background 0.3s ease, border-color 0.3s ease;
+      cursor: default;
+    }
+    .card.highlighted {
+      border-color: #bb5444;
+      background: linear-gradient(135deg, #302f2f 0%, #2a1f1f 100%);
+    }
+
+    /* Icon container */
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Icon background colors */
+    .bg-pink { background-color: #ff6b6b; }
+    .bg-blue { background-color: #2f6aff; }
+    .bg-yellow { background-color: #ffb824; }
+    .bg-purple { background-color: #7c5aff; }
+    .bg-green { background-color: #2fdc56; }
+    .bg-lightgreen { background-color: #17d16f; }
+
+    /* Card titles */
+    .card-title {
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    /* Card description */
+    .card-desc {
+      font-weight: 400;
+      font-size: 13.5px;
+      color: #cfcfcf;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+
+    /* Button style */
+    .btn {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-align: center;
+      user-select: none;
+    }
+    .btn:hover {
+      background-color: #ee4c5a;
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar" aria-label="Primary">
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M10 3H5c-1.1 0-2 .9-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9"/></svg>
+      QuickServe
+    </div>
+    <div class="sidebar-item active">
+      <svg viewBox="0 0 24 24"><path d="M11 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2Zm3 12a1 1 0 0 1-2 0v-3h-1v3a1 1 0 1 1-2 0v-3H5"/></svg>
+      Faculty Finder
+    </div>
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      AcadList
+    </div>
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/></svg>
+      CampusWeb
+    </div>
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M3 13h18M5 6h14l-1 7H6l-1-7zM10 18v3h4v-3"/></svg>
+      Transport
+    </div>
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M6 9h12M6 13h12M6 17h12"/></svg>
+      What's in Mess
+    </div>
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/></svg>
+      Explore Campus
+    </div>
+    <div class="sidebar-item">
+      <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 5-5"/></svg>
+      Join Community
+    </div>
+  </nav>
+
+  <div class="ticker" aria-live="polite" aria-atomic="true">
+    <span><strong>Faculty Finder:</strong> Photos, departments & exact cabin locations!</span>
+    <span><strong>AcadList:</strong> Playlists, unit-wise syllabus & peer notes — one tap!</span>
+    <span><strong>CampusWeb:</strong> Attendance, marks, timetable & CGPA in one dashboard!</span>
+    <span><strong>Transport:</strong> Shuttle routes, timings & train schedules.</span>
+  </div>
+
+  <main role="main" aria-label="Campus services cards">
+    <section class="card" aria-labelledby="qs-title">
+      <div class="card-icon bg-pink" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 3 12 14l-3-3"/>
+          <path d="M17 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"/>
+          <path d="M7 10V3H1v7"/>
+        </svg>
+      </div>
+      <h2 class="card-title" id="qs-title">QuickServe</h2>
+      <p class="card-desc">No more asking friends for menus or outlet numbers — browse all campus food spots with prices and call to order in one tap.</p>
+      <button class="btn">Order Now</button>
+    </section>
+
+    <section class="card" aria-labelledby="ff-title">
+      <div class="card-icon bg-blue" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="7" r="4"/>
+          <path d="M5.5 21h13v-2a6 6 0 0 0-13 0v2z" />
+        </svg>
+      </div>
+      <h2 class="card-title" id="ff-title">Faculty Finder</h2>
+      <p class="card-desc">Instantly search your professor to see their photo, department, and exact cabin location — no more asking around.</p>
+      <button class="btn">Find Faculty</button>
+    </section>
+
+    <section class="card" aria-labelledby="al-title">
+      <div class="card-icon bg-yellow" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <h2 class="card-title" id="al-title">AcadList</h2>
+      <p class="card-desc">Subject Wise YouTube playlists, complete syllabus, and curated resources — everything for your studies in one place.</p>
+      <button class="btn">Learn Now</button>
+    </section>
+
+    <section class="card" aria-labelledby="cw-title">
+      <div class="card-icon bg-purple" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <line x1="12" y1="2" x2="12" y2="22"/>
+        </svg>
+      </div>
+      <h2 class="card-title" id="cw-title">CampusWeb</h2>
+      <p class="card-desc">Track attendance, marks, timetables, and CGPA—all in one smart dashboard. From academics to campus events, manage your student life effortlessly</p>
+      <button class="btn">Open Portal</button>
+    </section>
+
+    <section class="card highlighted" aria-labelledby="transport-title">
+      <div class="card-icon bg-lightgreen" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="7" rx="2" ry="2"/>
+          <circle cx="7" cy="18" r="1"/>
+          <circle cx="17" cy="18" r="1"/>
+          <path d="M16 11V7a4 4 0 0 0-8 0v4"/>
+        </svg>
+      </div>
+      <h2 class="card-title" id="transport-title">Transport</h2>
+      <p class="card-desc">Access shuttle routes, timings, and train schedules for easy campus commuting and travel planning.</p>
+      <button class="btn">View Transport</button>
+    </section>
+
+    <section class="card" aria-labelledby="mess-title">
+      <div class="card-icon bg-green" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 11h10l-5 5z" />
+          <path d="M16 15V7a4 4 0 0 0-8 0v8" />
+        </svg>
+      </div>
+      <h2 class="card-title" id="mess-title">What's in Mess</h2>
+      <p class="card-desc">From Idli-Sambhar mornings to Pani Poori snack breaks, get real-time updates straight from your mess.</p>
+      <button class="btn">View Menu</button>
+    </section>
+
+    <section class="card" aria-labelledby="explore-title">
+      <div class="card-icon bg-green" aria-hidden="true" style="background-color: #4cd964">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L15 8l7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" />
+        </svg>
+      </div>
+      <h2 class="card-title" id="explore-title">Explore Campus</h2>
+      <p class="card-desc">Explore your college like a pro. From academic blocks and food joints to hidden gems and nearby essentials.</p>
+      <button class="btn">Explore Campus</button>
+    </section>
+
+    <section class="card" aria-labelledby="more-title">
+      <div class="card-icon bg-pink" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15A7.9 7.9 0 0 0 21 12a7.93 7.93 0 0 0-1.6-4.72"/>
+        </svg>
+      </div>
+      <h2 class="card-title" id="more-title">More Features Coming Soon</h2>
+      <p class="card-desc">Something exciting is in the works! Connect with fellow students through our WhatsApp group. Find your tribe and stay updated!</p>
+      <button class="btn">Join WhatsApp Group</button>
+    </section>
+  </main>
+</body>
+</html>
