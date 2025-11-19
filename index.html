@@ -1,307 +1,944 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Student web UI</title>
-  <style>
-    /* Reset and base */
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121212;
-      color: #ddd;
-      display: flex;
-      min-height: 100vh;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Students Hub — Campus Guide</title>
+<style>
+  /* ---------- GLOBAL RESET & BASE ---------- */
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#121212; --panel:#1f1f20; --muted:#bdbdbd; --accent:#ff4c4c; --green:#14b214;
+    --card:#2a2a2a; --input:#232324;
+  }
+  body{
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:#e6e6e6;
+    display:flex; min-height:100vh;
+  }
 
-    /* Sidebar */
-    .sidebar {
-      width: 230px;
-      background-color: #1e1e1e;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem 0;
-      gap: 0.5rem;
-    }
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:250px;background:#181818;padding:22px;display:flex;flex-direction:column;gap:14px;
+    border-right:1px solid rgba(255,255,255,0.02);
+    overflow-y:auto;
+  }
+  .logo{display:flex;align-items:center;gap:12px;color:#fff;font-weight:800;font-size:19px}
+  .logo .icon{width:36px;height:36px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;color:#b2b2b2;cursor:pointer;}
+  .nav-item:hover{background:#242424;color:#fff}
+  .nav-item.active{background:var(--accent);color:#fff}
+  .nav-item .icon{width:36px;height:36px;background:#2b2b2b;border-radius:8px;display:flex;align-items:center;justify-content:center}
 
-    .sidebar-item {
-      color: #bbb;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 14px;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    .sidebar-item:hover {
-      background-color: #2a2a2a;
-      color: white;
-    }
-    .sidebar-item.active {
-      font-weight: 700;
-      color: white;
-      background-color: #2a2a2a;
-    }
+  /* ---------- MAIN ---------- */
+  .main{flex:1;display:flex;flex-direction:column;overflow:auto;padding:28px 34px}
 
-    /* Icons in sidebar (simple placeholders as spans) */
-    .sidebar-item svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
-      flex-shrink: 0;
-    }
+  .top-nav{display:flex;justify-content:flex-end;gap:18px;align-items:center;margin-bottom:18px}
+  .top-nav a{color:#9e9e9e;text-decoration:none}
+  .login-button{background:var(--accent);border-radius:10px;padding:8px 14px;border:none;color:#000;font-weight:700;cursor:pointer}
 
-    /* Top ticker / announcement bar */
-    .ticker {
-      position: fixed;
-      top: 0;
-      left: 230px;
-      right: 0;
-      background-color: #222;
-      color: white;
-      font-weight: 600;
-      font-size: 14px;
-      padding: 5px 15px;
-      white-space: nowrap;
-      overflow-x: auto;
-      z-index: 10;
-      display: flex;
-      gap: 20px;
-    }
-    .ticker span {
-      white-space: nowrap;
-    }
+  /* ---------- CARD / GRID BASE ---------- */
+  .card-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
+  .card{background:var(--panel);border-radius:14px;padding:18px;color:#ddd;display:flex;flex-direction:column;gap:12px}
+  .card-emoji{font-size:42px;background:#333;width:70px;height:70px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+  .card-title{color:var(--accent);font-weight:800;font-size:1.25rem}
+  .card-desc{color:#bdbdbd;font-size:0.95rem}
+  .card-button{background:var(--accent);border:none;padding:10px 12px;border-radius:10px;color:#000;font-weight:800;cursor:pointer;align-self:flex-start}
 
-    /* Main content */
-    main {
-      margin-left: 230px;
-      padding: 70px 30px 30px 30px;
-      flex-grow: 1;
-      background-color: #191919;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-      gap: 24px;
-      align-content: start;
-    }
+  /* ---------- FACULTY FINDER LAYOUT ---------- */
+  .page-header{font-size:44px;color:#ff6b6b;margin-bottom:6px;font-weight:900}
+  .page-subheader{color:var(--green);font-size:18px;margin-bottom:20px}
 
-    /* Card */
-    .card {
-      background-color: #242424;
-      padding: 20px 20px 30px 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px #000000AA;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 1px solid transparent;
-      transition: background 0.3s ease, border-color 0.3s ease;
-      cursor: default;
-    }
-    .card.highlighted {
-      border-color: #bb5444;
-      background: linear-gradient(135deg, #302f2f 0%, #2a1f1f 100%);
-    }
+  .finder-controls{display:flex;gap:16px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+  .search-input{
+    flex:1;min-width:280px;height:56px;background:var(--input);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,0.03)
+  }
+  .search-input input{background:transparent;border:0;color:#dcdcdc;font-size:16px;width:100%;outline:none}
+  .dropdown{
+    width:220px;height:56px;border-radius:14px;background:var(--input);display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:#ddd;cursor:pointer;border:1px solid rgba(255,255,255,0.03)
+  }
 
-    /* Icon container */
-    .card-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 8px;
-      flex-shrink: 0;
-    }
+  /* Faculty grid cards */
+  .faculty-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .faculty-card{
+    background:var(--panel);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:10px;min-height:220px;
+    box-shadow:0 6px 16px rgba(0,0,0,0.6);
+  }
+  .faculty-name{color:var(--green);font-weight:900;font-size:20px;letter-spacing:0.4px}
+  .faculty-role{color:#bfbfbf;font-weight:600;font-size:14px}
+  .faculty-meta{display:flex;flex-direction:column;gap:8px;color:#cfcfcf;margin-top:6px;font-size:14px}
+  .meta-row{display:flex;align-items:center;gap:10px;opacity:0.95}
 
-    /* Icon background colors */
-    .bg-pink { background-color: #ff6b6b; }
-    .bg-blue { background-color: #2f6aff; }
-    .bg-yellow { background-color: #ffb824; }
-    .bg-purple { background-color: #7c5aff; }
-    .bg-green { background-color: #2fdc56; }
-    .bg-lightgreen { background-color: #17d16f; }
+  .email-link{color:#dcdcdc;text-decoration:none}
+  .email-link:hover{text-decoration:underline}
 
-    /* Card titles */
-    .card-title {
-      font-weight: 700;
-      font-size: 16px;
-      margin: 0;
-    }
+  /* pill dept on card */
+  .dept-pill{background:#2a2a2a;padding:8px 10px;border-radius:999px;color:#dcdcdc;font-weight:700;font-size:13px;align-self:flex-end}
 
-    /* Card description */
-    .card-desc {
-      font-weight: 400;
-      font-size: 13.5px;
-      color: #cfcfcf;
-      line-height: 1.3;
-      margin-bottom: 12px;
-    }
+  /* What's in Mess styles (reused) */
+  .mess-tabs, .day-tabs, .meal-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .mess-tab, .day-tab, .meal-tab {
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 25px;
+    user-select: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background-color: #2a2a2a;
+    color: #bbb;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  .mess-tab.active, .day-tab.active, .meal-tab.active {
+    background-color: var(--green);
+    color: black;
+  }
 
-    /* Button style */
-    .btn {
-      background-color: #ff6b6b;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      text-align: center;
-      user-select: none;
-    }
-    .btn:hover {
-      background-color: #ee4c5a;
-    }
-  </style>
+  .meal-tab.snacks.active {
+    background-color: #3a83f1;
+    color: white;
+    border: 3px solid #ffd700;
+    position: relative;
+  }
+  .meal-tab.snacks.active::after {
+    content: "NOW";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #ffd700;
+    color: #121212;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    border-radius: 12px;
+  }
+
+  .meal-section {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .item-box {
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    padding: 12px 20px;
+    min-width: 100px;
+    font-weight: 700;
+    text-align: center;
+    user-select: none;
+    cursor: default;
+    border: 2px solid transparent;
+    color: #ddd;
+  }
+
+  
+
+  /* QuickServe food cards */
+  .food-card-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+  .food-card{background:var(--panel);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .food-card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
+  .food-info h3{margin:0;color:#fff}
+  .action-button{background:var(--accent);border:none;padding:10px;border-radius:10px;color:#000;cursor:pointer;font-weight:800;align-self:flex-start}
+
+  /* Responsive adjustments */
+  @media (max-width:1200px){
+    .faculty-grid{grid-template-columns:repeat(3,1fr)}
+  }
+  @media (max-width:900px){
+    .sidebar{display:none}
+    .main{padding:18px}
+    .faculty-grid{grid-template-columns:repeat(2,1fr)}
+    .page-header{font-size:34px}
+  }
+  @media (max-width:560px){
+    .faculty-grid{grid-template-columns:1fr}
+    .finder-controls{flex-direction:column;align-items:stretch}
+    .dropdown{width:100%}
+  }
+
+  /* small helper visuals for icons */
+  .icon-svg{width:16px;height:16px;opacity:0.9}
+  /* ----- Login modal ----- */
+  /* backdrop sits behind the modal content (z-index:1) so the dialog stays sharp */
+  .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000}
+  .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  .modal-content{position:relative;z-index:2;background:var(--panel);padding:18px;border-radius:12px;min-width:320px;max-width:420px;color:#fff;box-shadow:0 8px 36px rgba(0,0,0,0.7)}
+  .modal-content h3{margin:0 0 8px 0;font-size:18px}
+  .modal-content input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--input);color:#e6e6e6;margin-top:8px}
+  .modal-actions{Display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+</style>
 </head>
 <body>
-  <nav class="sidebar" aria-label="Primary">
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M10 3H5c-1.1 0-2 .9-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9"/></svg>
-      QuickServe
-    </div>
-    <div class="sidebar-item active">
-      <svg viewBox="0 0 24 24"><path d="M11 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2Zm3 12a1 1 0 0 1-2 0v-3h-1v3a1 1 0 1 1-2 0v-3H5"/></svg>
-      Faculty Finder
-    </div>
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-      AcadList
-    </div>
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/></svg>
-      CampusWeb
-    </div>
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M3 13h18M5 6h14l-1 7H6l-1-7zM10 18v3h4v-3"/></svg>
-      Transport
-    </div>
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M6 9h12M6 13h12M6 17h12"/></svg>
-      What's in Mess
-    </div>
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/></svg>
-      Explore Campus
-    </div>
-    <div class="sidebar-item">
-      <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 5-5"/></svg>
-      Join Community
-    </div>
-  </nav>
 
-  <div class="ticker" aria-live="polite" aria-atomic="true">
-    <span><strong>Faculty Finder:</strong> Photos, departments & exact cabin locations!</span>
-    <span><strong>AcadList:</strong> Playlists, unit-wise syllabus & peer notes — one tap!</span>
-    <span><strong>CampusWeb:</strong> Attendance, marks, timetable & CGPA in one dashboard!</span>
-    <span><strong>Transport:</strong> Shuttle routes, timings & train schedules.</span>
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo"><div class="icon">O</div>Students Hub</div>
+
+    <!-- Home added at top per Option A -->
+    <div class="nav-item active" data-page="home"><div class="icon">🏠</div><div>Home</div></div>
+    <div class="nav-item" data-page="quickserve"><div class="icon">⚡</div><div>QuickServe</div></div>
+    <div class="nav-item" data-page="facultyfinder"><div class="icon">👩‍🏫</div><div>Faculty Finder</div></div>
+    <div class="nav-item" data-page="whatsinmess"><div class="icon">🍴</div><div>What's in Mess</div></div>
+    <div class="nav-item" data-page="explorecampus"><div class="icon">🗺</div><div>Explore Campus</div></div>
+    <div style="flex:1"></div>
+    <div class="nav-item" data-page="settings"><div class="icon">⚙</div><div>Settings</div></div>
   </div>
 
-  <main role="main" aria-label="Campus services cards">
-    <section class="card" aria-labelledby="qs-title">
-      <div class="card-icon bg-pink" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 3 12 14l-3-3"/>
-          <path d="M17 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"/>
-          <path d="M7 10V3H1v7"/>
-        </svg>
-      </div>
-      <h2 class="card-title" id="qs-title">QuickServe</h2>
-      <p class="card-desc">No more asking friends for menus or outlet numbers — browse all campus food spots with prices and call to order in one tap.</p>
-      <button class="btn">Order Now</button>
-    </section>
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="top-nav">
+      <a href="#" id="topHome">Home</a>
+      <a href="#" id="topAbout">About</a>
+      <a href="#" id="topFeedback">Feedback</a>
+      <div id="authState" style="margin-left:12px"></div>
+    </div>
 
-    <section class="card" aria-labelledby="ff-title">
-      <div class="card-icon bg-blue" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="7" r="4"/>
-          <path d="M5.5 21h13v-2a6 6 0 0 0-13 0v2z" />
-        </svg>
-      </div>
-      <h2 class="card-title" id="ff-title">Faculty Finder</h2>
-      <p class="card-desc">Instantly search your professor to see their photo, department, and exact cabin location — no more asking around.</p>
-      <button class="btn">Find Faculty</button>
-    </section>
-
-    <section class="card" aria-labelledby="al-title">
-      <div class="card-icon bg-yellow" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      </div>
-      <h2 class="card-title" id="al-title">AcadList</h2>
-      <p class="card-desc">Subject Wise YouTube playlists, complete syllabus, and curated resources — everything for your studies in one place.</p>
-      <button class="btn">Learn Now</button>
-    </section>
-
-    <section class="card" aria-labelledby="cw-title">
-      <div class="card-icon bg-purple" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="2" y1="12" x2="22" y2="12"/>
-          <line x1="12" y1="2" x2="12" y2="22"/>
-        </svg>
-      </div>
-      <h2 class="card-title" id="cw-title">CampusWeb</h2>
-      <p class="card-desc">Track attendance, marks, timetables, and CGPA—all in one smart dashboard. From academics to campus events, manage your student life effortlessly</p>
-      <button class="btn">Open Portal</button>
-    </section>
-
-    <section class="card highlighted" aria-labelledby="transport-title">
-      <div class="card-icon bg-lightgreen" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="7" rx="2" ry="2"/>
-          <circle cx="7" cy="18" r="1"/>
-          <circle cx="17" cy="18" r="1"/>
-          <path d="M16 11V7a4 4 0 0 0-8 0v4"/>
-        </svg>
-      </div>
-      <h2 class="card-title" id="transport-title">Transport</h2>
-      <p class="card-desc">Access shuttle routes, timings, and train schedules for easy campus commuting and travel planning.</p>
-      <button class="btn">View Transport</button>
-    </section>
-
-    <section class="card" aria-labelledby="mess-title">
-      <div class="card-icon bg-green" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 11h10l-5 5z" />
-          <path d="M16 15V7a4 4 0 0 0-8 0v8" />
-        </svg>
-      </div>
-      <h2 class="card-title" id="mess-title">What's in Mess</h2>
-      <p class="card-desc">From Idli-Sambhar mornings to Pani Poori snack breaks, get real-time updates straight from your mess.</p>
-      <button class="btn">View Menu</button>
-    </section>
-
-    <section class="card" aria-labelledby="explore-title">
-      <div class="card-icon bg-green" aria-hidden="true" style="background-color: #4cd964">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2L15 8l7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" />
-        </svg>
-      </div>
-      <h2 class="card-title" id="explore-title">Explore Campus</h2>
-      <p class="card-desc">Explore your college like a pro. From academic blocks and food joints to hidden gems and nearby essentials.</p>
-      <button class="btn">Explore Campus</button>
-    </section>
-
-    <section class="card" aria-labelledby="more-title">
-      <div class="card-icon bg-pink" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15A7.9 7.9 0 0 0 21 12a7.93 7.93 0 0 0-1.6-4.72"/>
-        </svg>
-      </div>
-      <h2 class="card-title" id="more-title">More Features Coming Soon</h2>
-      <p class="card-desc">Something exciting is in the works! Connect with fellow students through our WhatsApp group. Find your tribe and stay updated!</p>
-      <button class="btn">Join WhatsApp Group</button>
-    </section>
+    <!-- Page content will be injected here -->
+    <div id="pageContent" style="width:100%"></div>
   </main>
+
+  <!-- Login modal (in-page) -->
+  <div id="loginModal" class="modal" style="display:none;" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <h3 id="loginTitle">Sign in to continue</h3>
+      <div>
+        <input id="loginUser" placeholder="Username" autocomplete="username">
+        <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+        <div id="loginError" style="color:#f88;margin-top:8px;display:none"></div>
+        <div class="modal-actions">
+          <button id="loginCancel" class="action-button" style="background:#444;color:#fff;padding:8px 12px">Cancel</button>
+          <button id="loginSubmit" class="action-button" style="padding:8px 12px">Sign in</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  // BLOG DATABASE
+const blogData = {
+  sportx: {
+    title: "Inside SportX: Not Just a Gym, But a Lifestyle Statement",
+    img: "https://woxsen.edu.in/uploads/A20240611064133.webp",
+    content: If you think university sports complexes are just about dusty treadmills and a basketball hoop with a torn net, you haven't stepped inside SportX at Woxsen University. Located within the massive 60-acre sports arena known as "The League," SportX stands as a testament to the university’s belief that physical fitness is just as crucial as mental agility.
+
+The Architecture of Adrenaline From the moment you walk toward the building, the architecture commands attention. It isn’t designed like a typical utility block; it is designed like a modern fortress of fitness. The structure utilizes Woxsen’s signature exposed concrete aesthetic, but softens it with high ceilings and vast open spaces that allow air and energy to circulate freely. It feels less like a college facility and more like a high-performance training center for Olympic athletes.
+
+Technogym & The Iron Paradise The crown jewel of SportX is the fitness studio. Woxsen has partnered with Technogym, the official supplier for the Olympics, to outfit the gym. This means every rep, every mile run, and every weight lifted is done on world-class machinery. Whether you are a powerlifter looking for heavy plates or a cardio enthusiast tracking your heart rate on smart consoles, the facility caters to every level of fitness. The layout is spacious—no bumping elbows with the person next to you. It’s a zone where you plug in your music, zone out the world, and focus entirely on the grind.
+
+Beyond the Weights: Courts and Studios SportX is not limited to lifting. The complex houses professional-grade Squash Courts with pro-flooring that offers the perfect grip and bounce. The acoustics in here are intense—every strike of the ball echoes like a gunshot. Then there is the Badminton Arena, featuring BWF-certified flooring that protects your knees during those high-intensity jumps and smashes.
+
+For those who prefer rhythm over reps, the yoga and Zumba studios provide a sanctuary. With floor-to-ceiling mirrors and ample natural light, these spaces are designed for movement, dance, and mindfulness.
+
+The Verdict SportX transforms the mundane task of "working out" into an experience. It is a place where future CEOs build the discipline they will need in the boardroom. When you walk out of SportX, towel over your shoulder, endorphins pumping, you don’t just feel tired—you feel invincible.
+  },
+
+  library: {
+    title: "Lost in the Stacks: Why the Vithal Gandhi Centre is the Soul of Woxsen",
+    img: "https://woxsen.edu.in/uploads/A20240330030638.webp",
+    content: In an age of Kindles and PDFs, does a physical library still matter? One step into the Vithal Gandhi Centre at Woxsen University, and you have your answer. This isn't just a building; it is a cathedral dedicated to knowledge. Spanning a massive 70,000 square feet, it is one of the largest self-learning centers in India, but numbers don't do justice to the feeling of being here.
+
+A Sci-Fi Architectural Marvel The design of the library is arguably the most striking on campus. It is a masterclass in brutalist modernism. As you enter, your eyes are drawn upward to the open atrium that cuts through all four stories, creating a sense of vast, interconnected space. The layout creates an optical illusion of infinite depth. The use of exposed concrete and steel gives it a "bunker" feel—safe, solid, and impenetrable to the distractions of the outside world.
+
+The lighting deserves a special mention. The building utilizes Clerestory windows, strategically placed to allow soft, northern light to flood the reading areas. This means you get natural illumination without the harsh glare of the sun—perfect for those marathon study sessions.
+
+Tech-Enabled Silence While the design is timeless, the operation is futuristic. The library is fully automated with RFID technology. You don’t need to wait in line for a librarian to stamp your book; you simply walk to a kiosk, scan, and go. The facility houses over 18,000 offline books and gives students access to over 33,000 online resources. Whether you are looking for the latest issue of Vogue for a design project, a Harvard case study for business class, or a rare architectural journal, it is all housed within these walls.
+
+The Vibe There is a specific kind of silence inside the Vithal Gandhi Centre. It’s not an empty silence; it’s a heavy, focused silence. It’s the sound of hundreds of minds working simultaneously. Whether you are sitting in a private cubicle or lounging on the modern furniture in the common areas, the atmosphere forces you to level up. It is the ultimate sanctuary for the curious mind.
+  },
+
+  admin: {
+    title: "Concrete & Charisma: The Grandeur of the Admin Block",
+    img: "https://woxsen.edu.in/uploads/A20230522054130.webp",
+    content: First impressions matter. In the corporate world, a handshake tells you everything. In the academic world, it’s the Administrative Building. At Woxsen University, the Admin Block is the architectural handshake that grips you firm and says, "We mean business."
+
+The Anchor of Campus The Admin Block is the visual anchor of the university. It sits symmetrically poised, often the first major structure visitors and new students encounter. The design philosophy here is all about transparency and strength. The massive, raw concrete walls symbolize the solid foundation of the institution, while the large cutouts and open corridors represent the openness to new ideas and global perspectives.
+
+The Corridor of Dreams Walking through the main corridor of the Admin Block feels cinematic. The play of light and shadow, created by the geometric openings in the roof and walls, changes throughout the day. At "Golden Hour," the sun casts long, dramatic shadows across the floor, making it a favorite spot for student photographers and architecture enthusiasts.
+
+The Nerve Center Beyond the aesthetics, this is the engine room of the university. It houses the offices of the Chancellor, the Vice-Chancellor, the Registrar, and the International Relations department. This is where the strategic decisions that shape our curriculum and campus life are made. It is also the place where your journey technically begins—the Admissions office is the gateway every student passes through.
+
+Why It Matters Students might not spend their daily hangouts here, but the Admin Block serves a vital psychological purpose. It stands as a constant reminder of the scale and ambition of the university we are part of. It is intimidating, yes, but in an inspiring way. It reminds us that we are part of an institution that values grandeur, precision, and excellence.
+  },
+
+  race: {
+    title: "The Race: Where Woxsen Runs Toward the Future",
+    img: "https://woxsen.edu.in/uploads/A20240722074042.webp",
+    content: There is something primal about an open field. It calls you to run, to play, to compete. At Woxsen, that call is answered by The Race, an outdoor sports facility that rivals professional stadiums. This isn't just a playground; it is an arena built to World Athletics Class-1 standards.
+
+The Track Surrounding the field is the 10-lane synthetic track. If you are a runner, you know that the surface matters. This track offers the perfect balance of shock absorption and energy return. It features SmarTrack technology, utilizing magnetic sensors that can analyze stride and speed—a feature usually reserved for elite training centers. Even if you aren't training for the Olympics, jogging here at sunset with the cool Hyderabad breeze hitting your face is therapy.
+
+The Turf Inside the track lies the football field, laid with FIFA Quality Pro synthetic turf. Unlike natural grass which can get muddy in the monsoon or patchy in the summer, this turf is pristine 365 days a year. It allows for a fast-paced game where the ball rolls true. Whether it's an intense inter-college tournament or a friendly evening match between batchmates, the field invites you to dive, slide, and score without hesitation.
+
+Under the Floodlights The true magic of The Race happens after dark. The high-mast floodlights turn night into day, casting the field in a dramatic, brilliant glow. Looking down from the hostel balconies, the lit-up oval of the track looks like a spaceship has landed. It is the center of energy on campus evenings—where screams of victory and groans of defeat echo late into the night.
+
+A Space for Everyone The Race is also home to the Cricket ground and other outdoor amenities. It’s where we learn that leadership isn't just taught in classrooms; it's learned when you're down 2-0 with five minutes left on the clock, and you have to rally your team.
+  },
+
+  oval: {
+    title: "More Than Just a Mess: Why The Oval is the Heartbeat of Woxsen",
+    img: "https://woxsen.edu.in/uploads/A20240622074429.webp",
+    content: If the Library is the brain of the campus and SportX is the muscle, then The Oval is undoubtedly the heart (and the stomach). It is the Mess, the dining hall, and the undisputed social capital of Woxsen University.
+
+The Mess Experience Forget the stereotype of gloomy college cafeterias serving mystery stew. The Oval is a vibrant, bustling culinary hub. It is designed to feed a global cohort, and the layout reflects that. It’s bright, airy, and loud—in the best way possible. The clattering of trays, the aroma of freshly made rotis, and the noise of a thousand conversations merging into one hum define this space.
+
+The food here fuels us. Whether you are grabbing a quick breakfast before an 8 AM lecture or settling in for a long, lazy Sunday lunch, the Oval is where we nourish ourselves. It’s a melting pot of cultures; you’ll see students from different states and countries bonding over the universal language of food.
+
+The Oval Tree: The Silent Witness Just outside the dining area stands the iconic Oval Tree. This isn't just a plant; it’s a landmark. The tree, with its sprawling branches, serves as the "Living Room" of the campus. It is the default meet-up spot: "Meet me at the Tree in 10 mins."
+
+In the evenings, the area around the Oval Tree transforms. As the sun goes down and the decorative lights turn on, the vibe shifts from "rush hour" to "chill hour." Students drag chairs out, sit on the ledges, or stand in circles holding cups of coffee. This is where the real college life happens. It’s where project ideas are born, where distinct friend groups merge, where campus gossip spreads, and where memories are solidified.
+
+The Community Hub The Oval is also where the campus comes alive during events. From flash mobs breaking out during lunch to festive dinners during Diwali or Christmas, the Oval adapts to every celebration. It is the one place on campus where you are guaranteed to see someone you know. It is the place that feels most like home.
+  }
+};
+
+<script>
+/* =========================
+   App data & helpers
+   ========================= */
+
+/* small safe esc */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[ch])); }
+
+/* -------------------------
+   Authentication helpers
+   ------------------------- */
+async function isAuthenticated(){
+  // Try server-side session first (works when served via the local Node server).
+  try{
+    const res = await fetch('/is-auth', { credentials: 'include' });
+    if(res.ok){
+      const j = await res.json();
+      return !!j.authenticated;
+    }
+  }catch(e){
+    // server not available — fall back to localStorage
+  }
+  return localStorage.getItem('authenticated') === 'true';
+}
+
+function requireAuthRedirect(){
+  // remember where to return after login
+  try{ localStorage.setItem('returnTo', location.href); }catch(e){}
+  // prefer server-hosted login page when available
+  const tryUrl = '/login.html?returnTo=' + encodeURIComponent(location.href);
+  location.href = tryUrl;
+}
+
+// In-page login modal flow (static credentials). Uses a pending callback to continue action after sign-in.
+let _pendingAuthAction = null;
+function showLoginModal(callback){
+  _pendingAuthAction = callback || null;
+  const modal = document.getElementById('loginModal');
+  if(!modal) return;
+  modal.style.display = 'flex';
+  modal.setAttribute('aria-hidden','false');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  setTimeout(()=> document.getElementById('loginUser').focus(), 10);
+}
+function hideLoginModal(){
+  const modal = document.getElementById('loginModal');
+  if(!modal) return;
+  modal.style.display = 'none';
+  modal.setAttribute('aria-hidden','true');
+}
+async function handleLoginSubmit(){
+  const user = (document.getElementById('loginUser')?.value || '').trim();
+  const pass = document.getElementById('loginPass')?.value || '';
+  // static check — change as needed
+  const OK_USER = 'student';
+  const OK_PASS = 'campus123';
+  if(user === OK_USER && pass === OK_PASS){
+    try{ localStorage.setItem('authenticated','true'); localStorage.setItem('username', user); }catch(e){}
+    hideLoginModal();
+    updateLoginState();
+    // run pending action if present
+    if(typeof _pendingAuthAction === 'function'){
+      const cb = _pendingAuthAction; _pendingAuthAction = null; cb();
+    }
+    return;
+  }
+  const err = document.getElementById('loginError');
+  err.textContent = 'Invalid username or password'; err.style.display = 'block';
+}
+// wire modal buttons (if modal exists at script time)
+setTimeout(()=>{
+  const s = document.getElementById('loginSubmit');
+  const c = document.getElementById('loginCancel');
+  if(s) s.addEventListener('click', (e)=>{ e.preventDefault(); handleLoginSubmit(); });
+  if(c) c.addEventListener('click', (e)=>{ e.preventDefault(); _pendingAuthAction = null; hideLoginModal(); });
+  // allow Enter key to submit
+  const userEl = document.getElementById('loginUser');
+  const passEl = document.getElementById('loginPass');
+  [userEl, passEl].forEach(el=>{ if(el) el.addEventListener('keydown', (ev)=>{ if(ev.key === 'Enter') handleLoginSubmit(); }); });
+}, 50);
+
+function updateLoginState(){
+  const auth = localStorage.getItem('authenticated') === 'true';
+  const username = localStorage.getItem('username') || '';
+  const container = document.getElementById('authState');
+  if(!container) return;
+  if(auth){
+    container.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><span id="usernameDisplay" style="font-weight:700;color:#fff">${escapeHtml(username)}</span><button id="logoutBtn" class="action-button" style="background:#444;color:#fff;padding:6px 8px">Logout</button></div>`;
+    const lb = document.getElementById('logoutBtn');
+    if(lb) lb.addEventListener('click', (e)=>{ e.preventDefault(); logout(); });
+  } else {
+    container.innerHTML = `<button id="authLoginBtn" class="action-button" style="padding:6px 8px">Login</button>`;
+    const ab = document.getElementById('authLoginBtn');
+    if(ab) ab.addEventListener('click', (e)=>{ e.preventDefault(); showLoginModal(); });
+  }
+}
+
+function logout(){
+  try{ localStorage.removeItem('authenticated'); localStorage.removeItem('username'); }catch(e){}
+  updateLoginState();
+}
+
+/* ---------- Faculty data (kept from your second file) ---------- */
+const facultyData = [
+  {name:"Dr. R. Annie Uthra", title:"HOD", dept:"CINTEL", office:"TP2, 1106", email:"annie.u@campus.edu"},
+  {name:"Dr. Maragatham G", title:"Professor", dept:"CINTEL", office:"TP2, 1117", email:"maragatg@campus.edu"},
+  {name:"Dr. M. Uma", title:"Professor", dept:"CINTEL", office:"TP2, 1016", email:"umam@campus.edu"},
+  {name:"Dr. S. Karthik", title:"Associate Professor", dept:"CSE", office:"TP1, 203", email:"karthik.s@campus.edu"},
+  {name:"Dr. P. Lakshmi", title:"Assistant Professor", dept:"CSE", office:"TP1, 210", email:"lakshmi.p@campus.edu"},
+  {name:"Dr. T. Ramesh", title:"Professor", dept:"ECE", office:"TP3, 402", email:"ramesh.t@campus.edu"},
+  {name:"Dr. V. Nivedha", title:"Assistant Professor", dept:"AI&DS", office:"TP4, 109", email:"nivedha.v@campus.edu"},
+  {name:"Dr. A. Prakash", title:"Associate Professor", dept:"IT", office:"TP2, 309", email:"prakash.a@campus.edu"},
+  {name:"Dr. L. Meera", title:"Assistant Professor", dept:"CSE", office:"TP1, 215", email:"meera.l@campus.edu"},
+  {name:"Dr. R. Kannan", title:"Professor", dept:"AI&DS", office:"TP4, 201", email:"kannan.r@campus.edu"},
+  {name:"Dr. S. Poornima", title:"Assistant Professor", dept:"IT", office:"TP2, 321", email:"poornima.s@campus.edu"},
+  {name:"Dr. N. Sathish", title:"Associate Professor", dept:"CSE", office:"TP1, 218", email:"sathish.n@campus.edu"}
+];
+const departments = ["All","CSE","CINTEL","IT","AI&DS","ECE","Others"];
+
+/* Icons used in faculty cards */
+const svgBook = '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H19" stroke="#cfcfcf" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 21V6.5a2.5 2.5 0 0 1 2.5-2.5H19" stroke="#cfcfcf" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const svgPin = '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#cfcfcf" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.657 10.343A6 6 0 1 0 6 11.999v0C6 16 12 22 12 22s6-6 6-10 0-.001-.343-.657z" stroke="#cfcfcf" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const svgMail = '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8.5v7a2.5 2.5 0 0 0 2.5 2.5h13A2.5 2.5 0 0 0 21 15.5v-7" stroke="#cfcfcf" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 7l-9 6-9-6" stroke="#cfcfcf" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* -------------------------
+   Mess menu (from first file)
+   ------------------------- */
+;
+
+/* -------------------------
+   Page templates (Home from first file)
+   ------------------------- */
+const pages = {
+  home: `
+    <nav class="top-nav" style="justify-content:flex-start;margin-bottom:18px">
+      <a href="#" class="active" style="margin-right:auto;color:#fff;font-weight:700">Home</a>
+      <button class="login-button" onclick="alert('Login functionality here')">Login</button>
+      
+    
+    </nav>
+
+    <div class="card-container" style="margin-top:6px">
+      <div class="card" data-page="quickserve">
+        <div class="card-emoji">⚡</div>
+        <div class="card-title">QuickServe</div>
+        <div class="card-desc">
+          No more asking friends for menus or outlet numbers — browse all campus food spots with prices and call to order in one tap.
+        </div>
+        <button class="card-button" onclick="loadPage('quickserve')">Browse & Order</button>
+      </div>
+
+      <div class="card" data-page="facultyfinder">
+        <div class="card-emoji">👩‍🏫</div>
+        <div class="card-title">Faculty Finder</div>
+        <div class="card-desc">
+          Search and connect with faculty members across departments — find contacts and reach out easily.
+        </div>
+        <button class="card-button" onclick="loadPage('facultyfinder')">Find Faculty</button>
+      </div>
+
+      <div class="card" data-page="whatsinmess">
+        <div class="card-emoji">🍴</div>
+        <div class="card-title">What's in Mess</div>
+        <div class="card-desc">
+          Check daily mess menus to know what’s cooking in your mess — updated meal options and timings at your fingertips.
+        </div>
+        <button class="card-button" onclick="loadPage('whatsinmess')">Check Menu</button>
+      </div>
+
+      <div class="card" data-page="explorecampus">
+        <div class="card-emoji">🗺</div>
+        <div class="card-title">Explore Campus</div>
+        <div class="card-desc">
+          Discover campus locations, events, and points of interest with interactive maps and guides.
+        </div>
+        <button class="card-button" onclick="loadPage('explorecampus')">Explore Now</button>
+      </div>
+    </div>
+  `,
+  quickserve: `
+    <nav class="top-nav" style="justify-content:flex-start;margin-bottom:18px">
+      <a href="#" onclick="loadPage('home')" style="margin-right:auto;color:#9e9e9e">Home</a>
+      <a href="#" style="margin-left:12px">About</a>
+      <a href="#" style="margin-left:8px">Feedback</a>
+    </nav>
+
+    <h1 style="font-size:28px;margin-bottom:6px;color:#fff">QuickServe</h1>
+    <p style="color:var(--green);margin-bottom:18px">Browse campus food menus with prices and call the outlet to place your order.</p>
+
+    <input type="text" placeholder="Search for outlets or dishes..." id="quickserveSearch" style="width:100%;background:var(--input);border-radius:12px;padding:12px 14px;color:#ddd;border:1px solid rgba(255,255,255,0.03);margin-bottom:18px" />
+
+    <div class="food-card-container" id="quickserveList">
+      <div class="food-card">
+        <img src="https://woxsen.edu.in/uploads/A20230612060022.webp" alt="Blu Embers">
+        <div class="food-info">
+          <h3>Blu Embers</h3>
+          <p style="color:#bdbdbd;margin:6px 0 12px">
+            <li>
+            <ul>  Wednesday:05:00 PM 05:30 PM <ul>
+<ul>  Thursday: 05:00 PM - 05:30 PM <ul>
+  <ul>  Friday 05:00 PM - 05:30 PM <ul>
+    <ul>Saturday 05:00 PM 05:30 PM<ul>
+      <ul>  Sunday: 05:00 PM - 05:30 PM <ul>
+        <ul>  Monday: 05:00 PM - 05:30 PM <ul>
+          <ul>  Tuesday: 05:00 PM - 05:30 PM <ul><p>
+
+        </div>
+        <button class="action-button" onclick="alert('Calling Google Plus to place order...')">Menu</button>
+      </div>
+
+      <div class="food-card">
+        <img src="https://images.unsplash.com/photo-1565299613290-4154f6abf0ee?auto=format&fit=crop&w=900&q=60" alt="Google Food Park">
+        <div class="food-info">
+          <h3>New Embers</h3>
+          <p style="color:#bdbdbd;margin:6px 0 12px">Outlet at Java, Get Free Hostel Delivery!</p>
+        </div>
+        <button class="action-button" onclick="alert('Calling Google Food Park to place order...')">Menu</button>
+      </div>
+
+      <div class="food-card">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhTrFbQV8YRLO0XUtRfRAjVo_oArWE-65jbw&s" alt="Butty">
+        <div class="food-info">
+          <h3>Rise</h3>
+          <p style="color:#bdbdbd;margin:6px 0 12px">
+            
+            <li>
+            <ul>  Wednesday:09:00 AM 9:00 PM <ul>
+          <ul>  Thursay:09:00 AM 9:00 PM <ul>
+            <ul>  Friday:09:00 AM 9:00 PM <ul>
+              <ul>  Saturday:09:00 AM 9:00 PM <ul>
+                <ul>  Sunday:09:00 AM 9:00 PM <ul>
+                  <ul>  Monday:09:00 AM 9:00 PM <ul>
+                    <ul>  Tuesday:09:00 AM 9:00 PM <ul><p>
+          </p>
+        </div>
+        <button class="action-button" onclick="alert('Calling Butty to place order...')">Menu</button>
+      </div>
+      <div class="food-card">
+        <img src="https://woxsen.edu.in/uploads/A20230612060158.webp">
+        <div class="food-info">
+          <h3>Cup of Joe</h3>
+          <p style="color:#bdbdbd;margin:6px 0 12px">Outlet at Java, Get Free Hostel Delivery!</p>
+        </div>
+        <button class="action-button" onclick="alert('Calling Google Food Park to place order...')">Menu</button>
+      </div>
+    </div>
+  `,
+  facultyfinder: `
+    <div id="facultyFinderRoot">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div class="page-header" style="font-size:32px;margin:0;color:#ff6b6b">Faculty Finder</div>
+          <div class="page-subheader" style="margin-top:6px">Search and connect with faculty members across departments.</div>
+        </div>
+      </div>
+
+      <div class="finder-controls" style="margin-top:20px">
+        <div class="search-input" id="searchInput">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="opacity:0.7"><path d="M21 21l-4.35-4.35" stroke="#aaa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="#aaa" stroke-width="1.5"/></svg>
+          <input id="facultySearch" placeholder="Search by name or designation..." aria-label="Search faculty">
+        </div>
+
+        <div class="dropdown" id="deptDropdown" role="listbox" aria-label="Filter department">
+          <span id="deptSelected">All</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div class="faculty-grid" id="facultyGrid" aria-live="polite" style="margin-top:18px"></div>
+    </div>
+  `,
+  whatsinmess: `
+    <nav class="top-nav" style="justify-content:flex-start;margin-bottom:18px">
+      <a href="#" onclick="loadPage('home')" style="margin-right:auto;color:#9e9e9e">Home</a>
+      <a href="#" style="margin-left:12px">About</a>
+      <a href="#" style="margin-left:8px">Feedback</a>
+    </nav>
+
+    <h1 class="page-header" style="font-size:28px;margin-bottom:6px">What's in Mess</h1>
+
+    <div class="mess-tabs" role="tablist" aria-label="Mess selection">
+      <div class="mess-tab active" data-mess="oval">oval</div>
+      
+    </div>
+
+  
+
+  
+
+    <!-- Upload control added here -->
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <label style="font-weight:700;color:#cfcfcf">Upload menu:</label>
+      <input type="file" id="menuUpload" accept="image/*,text/plain" style="display:none" />
+      <button id="uploadBtn" class="action-button" style="padding:8px 12px;background:#666">Choose File</button>
+      <button id="applyUploadBtn" class="action-button" style="padding:8px 12px">Apply</button>
+      <button id="clearUploadBtn" class="action-button" style="background:#444;color:#fff;padding:8px 12px">Clear</button>
+    </div>
+    <div id="uploadPreview" style="display:flex;gap:12px;align-items:center;margin-bottom:12px"></div>
+
+    <div id="meal-items" class="meal-section" aria-live="polite" style="margin-top:12px"></div>
+  `,
+  explorecampus: `
+  <nav class="top-nav" style="justify-content:flex-start;margin-bottom:18px">
+    <a href="#" onclick="loadPage('home')" style="margin-right:auto;color:#9e9e9e">Home</a>
+  </nav>
+
+  <h1 style="font-size:28px;margin-bottom:6px;color:#fff">Explore Campus</h1>
+  <p style="color:var(--green);margin-bottom:18px">Discover popular places inside campus.</p>
+
+  <div class="food-card-container">
+
+    <div class="food-card" onclick="openBlog('sportx')">
+      <img src="https://woxsen.edu.in/uploads/A20240611064133.webp" alt="SportX">
+      <div class="food-info">
+        <h3>SportX Arena</h3>
+        <p style="color:#bdbdbd;margin:6px 0 12px">Indoor & outdoor courts for badminton, squash, basketball & more.</p>
+      </div>
+    </div>
+
+    <div class="food-card" onclick="openBlog('library')">
+      <img src="https://woxsen.edu.in/uploads/A20240330030638.webp" alt="Library">
+      <div class="food-info">
+        <h3>Central Library</h3>
+        <p style="color:#bdbdbd;margin:6px 0 12px">A peaceful study space with thousands of books & digital resources.</p>
+      </div>
+    </div>
+
+    <div class="food-card" onclick="openBlog('admin')">
+      <img src="https://woxsen.edu.in/uploads/A20230522054130.webp" alt="Admin Block">
+      <div class="food-info">
+        <h3>Admin Block</h3>
+        <p style="color:#bdbdbd;margin:6px 0 12px">Administrative offices, admissions & student support services.</p>
+      </div>
+    </div>
+
+    <div class="food-card" onclick="openBlog('race')">
+      <img src="https://woxsen.edu.in/uploads/A20240722074042.webp" alt="RACE">
+      <div class="food-info">
+        <h3>RACE</h3>
+        <p style="color:#bdbdbd;margin:6px 0 12px">Research & Advanced Computing Excellence center.</p>
+      </div>
+    </div>
+
+    <div class="food-card" onclick="openBlog('oval')">
+      <img src="https://woxsen.edu.in/uploads/A20240722074042.webp" alt="RACE">
+      <div class="food-info">
+        <h3>OVAL</h3>
+        <p style="color:#bdbdbd;margin:6px 0 12px">The social & cultural heartbeat of Woxsen University.</p>
+      </div>
+    </div>
+
+  </div>
+`,
+
+};
+
+/* -------------------------
+   App behavior
+   ------------------------- */
+
+/* Sidebar nav items */
+const navItems = document.querySelectorAll('.nav-item');
+
+function setActiveNav(page){
+  navItems.forEach(n=> n.classList.toggle('active', n.dataset.page===page));
+  // also set top nav active link text color for Home
+  document.getElementById('topHome').style.color = (page === 'home') ? '#fff' : '#9e9e9e';
+}
+
+/* Render faculty finder content (wires up search/filters) */
+function renderFacultyFinder(){
+  // replace content with template already set
+  document.getElementById('pageContent').innerHTML = pages.facultyfinder;
+
+  // wire up search and dropdown after DOM insertion
+  const searchEl = document.getElementById('facultySearch');
+  const deptDropdown = document.getElementById('deptDropdown');
+  const deptSelected = document.getElementById('deptSelected');
+
+  deptDropdown.addEventListener('click', ()=>{ 
+    const opts = departments.map((d,i)=>`${i+1}. ${d}`).join('\n');
+    const choice = prompt("Select department (enter number):\n\n" + opts, "1");
+    if(!choice) return;
+    const idx = parseInt(choice,10)-1;
+    if(isNaN(idx) || idx<0 || idx>=departments.length){ alert("Invalid selection"); return; }
+    deptSelected.textContent = departments[idx];
+    applyFacultyFilters();
+  });
+
+  if(searchEl) {
+    searchEl.addEventListener('input', ()=>applyFacultyFilters());
+  }
+
+  // initial render
+  renderFacultyCards(facultyData);
+}
+
+function renderFacultyCards(list){
+  const grid = document.getElementById('facultyGrid');
+  if(!grid) return;
+  if(list.length === 0){
+    grid.innerHTML = `<div style="color:#bdbdbd;padding:24px">No faculty found.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(f => `
+    <div class="faculty-card" role="article" aria-label="${escapeHtml(f.name)}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1">
+          <div class="faculty-name">${escapeHtml(f.name)}</div>
+          <div class="faculty-role">${escapeHtml(f.title)}</div>
+        </div>
+        <div class="dept-pill">${escapeHtml(f.dept)}</div>
+      </div>
+      <div class="faculty-meta">
+        <div class="meta-row">${svgBook} <span>${escapeHtml(f.dept)}</span></div>
+        <div class="meta-row">${svgPin} <span>${escapeHtml(f.office)}</span></div>
+        <div class="meta-row">${svgMail} <a class="email-link" href="mailto:${encodeURIComponent(f.email)}">${escapeHtml(f.email)}</a></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function applyFacultyFilters(){
+  const q = (document.getElementById('facultySearch')?.value || '').trim().toLowerCase();
+  const dept = (document.getElementById('deptSelected')?.textContent || 'All');
+
+  const filtered = facultyData.filter(f=>{
+    if(dept && dept !== 'All' && dept !== 'Others' && f.dept !== dept) return false;
+    if(dept === 'Others'){
+      const known = ["CSE","CINTEL","IT","AI&DS","ECE"];
+      if(known.includes(f.dept)) return false;
+    }
+    if(!q) return true;
+    const hay = (f.name + ' ' + f.title + ' ' + f.dept + ' ' + f.office).toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+
+  renderFacultyCards(filtered);
+}
+
+/* QuickServe search */
+function addQuickserveSearch() {
+  const searchBox = document.getElementById('quickserveSearch');
+  const list = document.getElementById('quickserveList');
+  if(!searchBox || !list) return;
+  const cards = list.querySelectorAll('.food-card');
+
+  searchBox.addEventListener('input', () => {
+    const query = searchBox.value.toLowerCase();
+    cards.forEach(card => {
+      const title = (card.querySelector('h3')?.textContent || '').toLowerCase();
+      const desc = (card.querySelector('p')?.textContent || '').toLowerCase();
+      card.style.display = (title.includes(query) || desc.includes(query)) ? '' : 'none';
+    });
+  });
+}
+
+/* WhatsInMess interactions */
+let currentMess = "oval";
+
+
+function renderMealItems() {
+  const mealItemsContainer = document.getElementById('meal-items');
+  if(!mealItemsContainer) return;
+  // if an uploaded image exists for this selection, render it (and continue to show textual items if present)
+  const imgKey = `${currentMess}|${currentDay}|${currentMeal}`;
+  const uploadedImg = (window._messImages && window._messImages[imgKey]) ? window._messImages[imgKey] : null;
+
+  const items = (messMenu[currentMess] && messMenu[currentMess][currentDay] && messMenu[currentMess][currentDay][currentMeal]) || [];
+
+  if (!items.length && !uploadedImg) {
+    mealItemsContainer.innerHTML = `<p style=\"color:#bdbdbd">No menu available for this selection.</p>`;
+    return;
+  }
+
+  let colorClass = "item-breakfast";
+  if (currentMeal === "breakfast") colorClass = "item-breakfast";
+  else if (currentMeal === "lunch") colorClass = "item-lunch";
+  else if (currentMeal === "dinner") colorClass = "item-dinner";
+  else if (currentMeal === "snacks") colorClass = "item-snacks";
+
+  const itemsHtml = items.map(item =>
+    `<div class=\"item-box ${colorClass}\">${escapeHtml(item)}</div>`
+  ).join('');
+
+  const imgHtml = uploadedImg ? `<div style=\"width:100%\"><img src=\"${uploadedImg}\" style=\"max-width:100%;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,0.6);margin-bottom:12px\"></div>` : '';
+
+  mealItemsContainer.innerHTML = imgHtml + itemsHtml;
+}
+
+function setActiveTab(tabButtons, activeValue, valueAttr = "data-mess") {
+  tabButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute(valueAttr) === activeValue);
+  });
+}
+
+function addWhatsInMessEvents() {
+  const messTabs = document.querySelectorAll('.mess-tab');
+  messTabs.forEach(tab => {
+    tab.onclick = () => {
+      currentMess = tab.getAttribute('data-mess');
+      setActiveTab(messTabs, currentMess);
+      renderMealItems();
+    };
+  });
+
+  const dayTabs = document.querySelectorAll('.day-tab');
+  dayTabs.forEach(tab => {
+    tab.onclick = () => {
+      currentDay = tab.getAttribute('data-day');
+      setActiveTab(dayTabs, currentDay, 'data-day');
+      renderMealItems();
+    };
+  });
+
+  const mealTabs = document.querySelectorAll('.meal-tab');
+  mealTabs.forEach(tab => {
+    tab.onclick = () => {
+      currentMeal = tab.getAttribute('data-meal');
+      setActiveTab(mealTabs, currentMeal, 'data-meal');
+      renderMealItems();
+    };
+  });
+
+  // Upload handlers (wire after DOM insertion)
+  const uploadInput = document.getElementById('menuUpload');
+  const applyBtn = document.getElementById('applyUploadBtn');
+  const clearBtn = document.getElementById('clearUploadBtn');
+  const uploadPreview = document.getElementById('uploadPreview');
+  let stagedMenuItems = null;
+  let stagedImageData = null;
+
+  if (uploadInput && uploadPreview && applyBtn && clearBtn) {
+    // wire visible upload button to require authentication before opening file picker
+    const uploadBtn = document.getElementById('uploadBtn');
+    if(uploadBtn){
+      uploadBtn.addEventListener('click', (e)=>{
+        // Always require fresh authentication before opening the file picker.
+        showLoginModal(()=> { setTimeout(()=> uploadInput.click(), 50); });
+      });
+    }
+
+    uploadInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      stagedMenuItems = null;
+      stagedImageData = null;
+      uploadPreview.innerHTML = '';
+      if (!file) return;
+
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          stagedImageData = ev.target.result;
+          uploadPreview.innerHTML = `<img src=\"${stagedImageData}\" style=\"max-width:120px;border-radius:8px\">`;
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          stagedMenuItems = (ev.target.result || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+          uploadPreview.innerHTML = `<div style=\"color:#bdbdbd;max-width:600px\"><strong>Parsed items:</strong><div style=\"margin-top:8px\">${stagedMenuItems.map(i => `<div style=\"padding:4px 0\">• ${escapeHtml(i)}</div>`).join('')}</div></div>`;
+        };
+        reader.readAsText(file);
+      } else {
+        uploadPreview.innerHTML = `<div style=\"color:#f88\">Unsupported file type</div>`;
+      }
+    });
+
+    const doApply = () => {
+      messMenu[currentMess] = messMenu[currentMess] || {};
+      messMenu[currentMess][currentDay] = messMenu[currentMess][currentDay] || {};
+      if (stagedMenuItems) {
+        messMenu[currentMess][currentDay][currentMeal] = stagedMenuItems;
+        renderMealItems();
+        alert('Menu applied from uploaded text.');
+      } else if (stagedImageData) {
+        if (!window._messImages) window._messImages = {};
+        window._messImages[`${currentMess}|${currentDay}|${currentMeal}`] = stagedImageData;
+        renderMealItems();
+        alert('Image uploaded and saved for this selection.');
+      } else {
+        alert('No uploaded menu to apply.');
+      }
+    };
+
+    // Always require login each time before applying a staged upload
+    applyBtn.onclick = () => {
+      showLoginModal(doApply);
+    };
+
+    clearBtn.onclick = () => {
+      uploadInput.value = '';
+      stagedMenuItems = null;
+      stagedImageData = null;
+      uploadPreview.innerHTML = '';
+      if (window._messImages) {
+        delete window._messImages[`${currentMess}|${currentDay}|${currentMeal}`];
+      }
+      renderMealItems();
+    };
+  }
+}
+
+/* Page loader */
+function loadPage(page){
+  setActiveNav(page);
+  if(page === 'facultyfinder'){
+    renderFacultyFinder();
+  } else {
+    document.getElementById('pageContent').innerHTML = pages[page] || `<div style=\"padding:24px\">Page: ${page}</div>`;
+    // post-load hookups
+    if(page === 'quickserve') {
+      // allow small delay before hooking search
+      setTimeout(()=> addQuickserveSearch(), 0);
+    } else if(page === 'whatsinmess') {
+      // initialize mess interactions
+      setTimeout(()=> {
+        addWhatsInMessEvents();
+        renderMealItems();
+      }, 0);
+    }
+  }
+}
+
+/* wire sidebar nav clicks */
+navItems.forEach(n=>{
+  n.addEventListener('click', ()=>{
+    const page = n.dataset.page;
+    loadPage(page);
+  });
+});
+
+/* top nav home link */
+document.getElementById('topHome').addEventListener('click',(e)=>{ e.preventDefault(); loadPage('home'); });
+
+// initialize auth UI and start on home
+setTimeout(()=>{
+  updateLoginState();
+  loadPage('home');
+}, 20);
+
+</script>
 </body>
 </html>
